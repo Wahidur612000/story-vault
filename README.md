@@ -1,240 +1,213 @@
-📚 Smart Bookmark App
+# 📚 StoryVault
 
-A modern bookmark management application built with Next.js (App Router) and Supabase, featuring Google OAuth authentication, private user bookmarks, and real-time updates.
+> A modern full-stack book reading and bookmarking platform built with **Next.js, Supabase, and Google OAuth**.
 
-🚀 Live Demo
+🔗 **Live Demo:** https://your-vercel-url.vercel.app  
+🔗 **GitHub Repo:** https://github.com/Wahidur612000/story-vault  
 
-🔗 Vercel Deployment:
-https://your-vercel-url.vercel.app
+---
 
-🛠 Tech Stack
+## ✨ Overview
 
-Next.js 14+ (App Router)
+StoryVault allows users to:
 
-Supabase
+- 📖 Read free public-domain books
+- ⭐ Bookmark books (private to each user)
+- 🔐 Sign in securely with Google OAuth
+- 📱 Use the platform seamlessly across desktop and mobile
 
-Authentication (Google OAuth)
+All bookmarks are:
+- User-specific
+- Protected using Supabase Row Level Security (RLS)
+- Stored in a PostgreSQL database
+- Updated instantly in the UI
 
-PostgreSQL Database
+---
 
-Realtime subscriptions
+## 🚀 Features
 
-Tailwind CSS
+### 📖 Reading Experience
+- Clean, scroll-based reading interface
+- Gutenberg header/footer removed
+- Bookmark star available inside reader page
+- Fixed navbar for better navigation
+- Smooth responsive typography
 
-Vercel (Deployment)
+### ⭐ Bookmark System
+- Add / Remove bookmark from:
+  - Book cards (Home)
+  - Reader page
+- Bookmarks are:
+  - Private to each user
+  - Secured via RLS
+- Visual bookmark indicator (yellow star)
+- Login required prompt with auto-dismiss timer
 
-✅ Features Implemented
-🔐 Authentication
+### 🔐 Authentication
+- Google OAuth via Supabase
+- Session-based authentication
+- Auth state managed globally using React Context
+- Auto UI updates on login/logout
 
-Google OAuth login (no email/password)
+### 📱 Responsive Design
+- Fully responsive layout
+- Sticky navbar
+- Mobile hamburger menu
+- Clean mobile dropdown experience
 
-Secure session management
+---
 
-Auth context with global state handling
+## 🏗️ Tech Stack
 
-Protected bookmark actions (requires login)
+### Frontend
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- React Context API
 
-⭐ Bookmark Functionality
+### Backend & Database
+- Supabase (PostgreSQL)
+- Supabase Auth (Google OAuth)
+- Row Level Security (RLS)
 
-Users can bookmark books
+### Deployment
+- Vercel (Frontend hosting)
+- Supabase (Database + Auth)
 
-Bookmarks are private per user
+---
 
-Star indicator updates based on user’s bookmarks
+## 📂 Project Structure
 
-Bookmark removal supported
-
-UI prevents bookmarking when not logged in
-
-Auth-required banner appears and auto-dismisses after 5 seconds
-
-🔄 Real-Time Updates
-
-Bookmarks update instantly
-
-If opened in two tabs, changes reflect automatically
-
-Uses Supabase Realtime
-
-📖 Reading Experience
-
-Public domain books loaded from local .txt files
-
-Clean reader UI
-
-Responsive layout
-
-Scrollable reading interface
-
-Bookmark star available inside reader page
-
-📱 Responsive Design
-
-Fully responsive layout
-
-Mobile navbar with hamburger menu
-
-Fixed navigation bar
-
-Clean UI for both desktop and mobile
-
-🗂 Project Structure
+```
 app/
- ├── book/[id]/        → Book reader page
- ├── bookmarks/        → User bookmarks page
- ├── components/       → UI components
- ├── context/          → AuthContext
- ├── data/             → Book metadata
- ├── lib/              → Supabase client
- ├── layout.tsx
- └── page.tsx          → Home page
-
+│
+├── page.tsx                → Home page
+├── layout.tsx              → Root layout
+├── book/[id]/              → Reader page
+├── bookmarks/              → User bookmarks page
+│
+├── components/             → UI components
+│   ├── BookCard.tsx
+│   ├── Navbar.tsx
+│   ├── LoginButton.tsx
+│   └── LogoutButton.tsx
+│
+├── context/
+│   └── AuthContext.tsx     → Global auth state
+│
+├── data/
+│   └── books.ts            → Book metadata
+│
+├── lib/
+│   └── supabaseClient.ts   → Supabase config
+│
 public/
- └── books/            → Public domain book files
+└── books/                  → Public domain text files
+```
 
-🔐 Database Schema
-bookmarks table
-Column	Type
-id	UUID
-user_id	UUID
-book_id	TEXT
-created_at	TIMESTAMP
-🔒 Row Level Security (RLS)
+---
 
-Policies:
+## 🗄️ Database Schema
 
--- Insert
+### Table: `bookmarks`
+
+| Column     | Type       |
+|------------|------------|
+| id         | UUID       |
+| user_id    | UUID       |
+| book_id    | TEXT       |
+| created_at | TIMESTAMP  |
+
+---
+
+## 🔒 Row Level Security (RLS)
+
+Enabled to ensure:
+
+- Users can only see their own bookmarks
+- Users can only insert their own bookmarks
+- Users can only delete their own bookmarks
+
+### Policies:
+
+```sql
+-- SELECT
 auth.uid() = user_id
 
--- Select
+-- INSERT
 auth.uid() = user_id
 
--- Delete
+-- DELETE
 auth.uid() = user_id
+```
 
+---
 
-This ensures:
+## 🧠 Problems Faced & Solutions
 
-Users can only access their own bookmarks
+### 1️⃣ Multiple Supabase requests per BookCard
+**Problem:** Each card was fetching user session individually.  
+**Solution:** Centralized auth state using React Context and fetched bookmarks once on Home page.
 
-Complete data isolation
+---
 
-⚙ Environment Variables
+### 2️⃣ Star UI not syncing after login
+**Problem:** Bookmark UI didn’t update after auth state change.  
+**Solution:** Managed session via global AuthContext with auth state listener.
 
-Required:
+---
 
+### 3️⃣ Deployment error: `supabaseUrl is required`
+**Problem:** Environment variables missing on Vercel.  
+**Solution:** Added environment variables in Vercel Project Settings.
+
+---
+
+### 4️⃣ OAuth redirect not working on production
+**Problem:** Google OAuth was configured only for localhost.  
+**Solution:** Added Vercel production URL to:
+- Supabase Redirect URLs
+- Google OAuth Authorized Redirect URIs
+
+---
+
+## 🌍 Environment Variables
+
+```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
+Must be configured in:
+- Local `.env.local`
+- Vercel Project Settings → Environment Variables
 
-Set in:
+---
 
-.env.local (development)
+## 🧪 How to Run Locally
 
-Vercel → Project Settings → Environment Variables (production)
-
-🔄 OAuth Configuration
-Supabase
-
-Site URL: Vercel production URL
-
-Redirect URLs:
-
-http://localhost:3000
-
-https://your-vercel-url.vercel.app
-
-Google Cloud
-
-Authorized JavaScript Origins:
-
-http://localhost:3000
-
-https://your-vercel-url.vercel.app
-
-Authorized Redirect URI:
-
-https://your-project-id.supabase.co/auth/v1/callback
-
-⚠ Challenges Faced & Solutions
-1️⃣ Supabase Environment Variables Missing in Production
-
-Problem:
-Vercel build failed with:
-
-supabaseUrl is required
-
-
-Cause:
-Environment variables were only set locally.
-
-Solution:
-Added NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel dashboard and redeployed.
-
-2️⃣ TypeScript Build Errors in Production
-
-Problem:
-Implicit any type errors during next build.
-
-Cause:
-Component props were not typed explicitly.
-
-Solution:
-Defined proper TypeScript interfaces for all component props.
-
-3️⃣ Nested Git Repository Error
-
-Problem:
-Git refused to add public/books directory.
-
-Cause:
-A nested .git folder existed inside public/books.
-
-Solution:
-Removed nested .git directory using PowerShell:
-
-Remove-Item -Recurse -Force public\books\.git
-
-4️⃣ OAuth Redirecting to Localhost After Deployment
-
-Problem:
-After login in production, redirect went to localhost.
-
-Cause:
-Supabase Site URL was still set to http://localhost:3000.
-
-Solution:
-Updated Site URL to Vercel production URL.
-
-5️⃣ Bookmark Star Not Updating Correctly
-
-Problem:
-Star was not reflecting bookmark state properly.
-
-Cause:
-Each card was querying Supabase individually.
-
-Solution:
-Fetched all user bookmarks once in parent component and passed bookmarked state down as props.
-
-6️⃣ Navbar Not Updating After Login
-
-Problem:
-Login state didn’t update UI.
-
-Cause:
-Navbar was outside AuthProvider or session not managed globally.
-
-Solution:
-Created AuthContext to manage authentication globally.
-
-📦 How to Run Locally
+```bash
 git clone https://github.com/Wahidur612000/story-vault.git
-cd smart-bookmark-app
+cd story-vault
 npm install
 npm run dev
+```
 
+---
 
-Visit:
+## 📌 Submission Checklist
 
-http://localhost:3000
+- ✅ Live Vercel URL
+- ✅ Public GitHub Repository
+- ✅ README with architecture + challenges
+- ✅ Secure authentication
+- ✅ Clean responsive UI
+- ✅ RLS-protected bookmarks
+
+---
+
+## 👨‍💻 Author
+
+**Wahidur Rahman N**  
+Java Full Stack Developer  
+Built with ❤️ using Next.js + Supabase
