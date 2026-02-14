@@ -3,11 +3,23 @@
 import Link from "next/link"
 import { useAuth } from "../context/AuthContext"
 
+interface BookCardProps {
+  book: {
+    id: string
+    image: string
+    title: string
+    author: string
+    tags: string[]
+  }
+  isBookmarked: boolean
+  onToggleBookmark: () => void
+}
+
 export default function BookCard({
   book,
   isBookmarked,
   onToggleBookmark,
-}) {
+}: BookCardProps) {
   const { user, setAuthRequired, setAuthMessage } = useAuth()
 
   const handleBookmarkClick = () => {
